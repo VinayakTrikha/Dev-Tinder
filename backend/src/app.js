@@ -9,8 +9,8 @@ const profileRouter = require("./routes/profile");
 const requestRouter = require("./routes/request");
 const userRouter = require("./routes/user");
 
-// require("./utils/cron");
-
+require("./utils/cron");
+require("./config/emailWorker")
 const app = express();
 const http = require("http");
 const server = http.createServer(app);
