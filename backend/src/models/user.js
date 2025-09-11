@@ -72,6 +72,13 @@ const userSchema = new Schema(
         }
       },
     },
+    isPremium: {
+      type: Boolean,
+      default: false,
+    },
+    membershipType: {
+      type: String,
+    },
   },
   {
     timestamps: true,

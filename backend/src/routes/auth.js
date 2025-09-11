@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const User = require("../models/user");
 const validator = require("validator");
 const saltRounds = 10;
+const sendEmail = require("../utils/sendEmail");
 
 authRouter.post("/signup", async (req, res) => {
   try {
@@ -32,7 +33,8 @@ authRouter.post("/signup", async (req, res) => {
       skills,
     });
     const val = await user.save();
-    res.send("Successfully created!!");
+    res.status(201).json({ message: "Successfully created!!" });
+    sendEmail(user.emailId, 'Welcome!!!', 'Welcome to dev tinder a community dedicated to developers`');
   } catch (error) {
     res.status(400).send("Error in saving the user " + error);
   }
