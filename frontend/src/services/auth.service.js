@@ -14,4 +14,4 @@ export const signup = async (formData) => {
 
 export const logout = async () => {
     return axios.post(`${import.meta.env.VITE_BASE_URL}/logout`, {} ,{ withCredentials: true });
-}
+} 
