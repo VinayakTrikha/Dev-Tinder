@@ -2,6 +2,7 @@ const express = require("express");
 const userRouter = express.Router();
 const ConnectionRequest = require("../models/connectionRequest");
 const User = require("../models/user");
+const Chat = require("../models/chat");
 const { userAuth } = require("../middlewares/auth");
 const { fields } = require("../utils/validation");
 const requestRouter = require("./request");
@@ -77,6 +78,30 @@ requestRouter.get("/user/feed", userAuth, async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Something went wrong" });
+  }
+});
+
+requestRouter.get("/user/chats/:targetId", userAuth, async (req, res) => {
+  try {
+    const { targetId } = req.params;
+    const senderId = req.user._id.toString();
+    let chat = await Chat.findOne({
+      participants: { $all: [senderId, targetId] },
+    }).populate("messages.senderId", "firstName");
+
+    if (!chat) return res.status(204).json();
+
+    const messagesWithSender = chat.messages.map((msg) => ({
+      _id: msg._id,
+      text: msg.text,
+      senderId: msg.senderId._id,
+      senderName: msg.senderId.firstName,
+      createdAt: msg.createdAt,
+    }));
+
+    return res.status(200).json(messagesWithSender);
+  } catch (error) {
+    return res.status(500).json({ message: "Something went wrong" });
   }
 });
 

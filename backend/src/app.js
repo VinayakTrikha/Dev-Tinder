@@ -9,8 +9,8 @@ const profileRouter = require("./routes/profile");
 const requestRouter = require("./routes/request");
 const userRouter = require("./routes/user");
 
-require("./utils/cron");
-require("./config/emailWorker")
+// require("./utils/cron");
+// require("./config/emailWorker")
 const app = express();
 const http = require("http");
 const server = http.createServer(app);
@@ -21,16 +21,8 @@ const corsOptions = {
   credentials: true,
 };
 
-// Attach Socket.IO to HTTP server with CORS
-const { Server } = require("socket.io");
-const io = new Server(server, {
-  cors: corsOptions,
-});
-
-// Socket.IO connection event
-io.on("connection", (socket) => {
-  console.log("A user connected: ", socket.id);
-});
+const initializeSocket = require("./config/socket");
+initializeSocket(server, corsOptions)
 
 // Express Middlewares
 app.use(cors(corsOptions));
