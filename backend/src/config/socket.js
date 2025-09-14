@@ -4,6 +4,7 @@ const cookie = require("cookie");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const Chat = require("../models/chat");
+const ConnectionRequest = require("../models/connectionRequest");
 
 const getRoomId = (toUserId, fromUserId) => {
   return crypto
@@ -44,6 +45,15 @@ const initializeSocket = (server, corsOptions) => {
     socket.on("message", async (data) => {
       try {
         const { fromUserId, toUserId, firstName, mssg } = data;
+
+        const isConnected = await ConnectionRequest.findOne({
+          toUserId,
+          fromUserId,
+          status: "accepted",
+        });
+
+        if (!isConnected) throw new Error("Not connected");
+
         const roomId = getRoomId(toUserId, fromUserId);
         let chat = await Chat.findOne({
           participants: { $all: [fromUserId, toUserId] },
@@ -51,7 +61,7 @@ const initializeSocket = (server, corsOptions) => {
         if (!chat) {
           chat = new Chat({
             participants: [fromUserId, toUserId],
-            messages: []
+            messages: [],
           });
         }
         chat.messages.push({

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addFeedData } from "../slices/feedSlice";
 import { useNavigate } from "react-router-dom";
@@ -8,30 +8,39 @@ import * as userService from "../services/user.service";
 
 const Feed = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const feedArr = useSelector((store) => store.feed);
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Fetch feed from backend
   const fetchFeed = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const response = await userService.fetchAllFeed();
-      const feedData = response.data;
-      dispatch(addFeedData(feedData.data));
-    } catch (error) {
-      console.error(error);
+      dispatch(addFeedData(response.data.data));
+    } catch (err) {
+      setError("Failed to load feed");
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleRequest = async (id, status) => {
     try {
-      const params = {
-        status: status,
-        requestId: id,
-      };
-      await requestService.sendRequest(params);
       const filteredData = feedArr.filter((feed) => feed._id !== id);
       dispatch(addFeedData(filteredData));
+
+      await requestService.sendRequest({ status, requestId: id });
+
+      if (filteredData.length === 0) {
+        fetchFeed();
+      }
     } catch (error) {
       console.error(error);
+      fetchFeed();
     }
   };
 
@@ -39,7 +48,14 @@ const Feed = () => {
     fetchFeed();
   }, []);
 
-  const user = useSelector((store) => store.user);
+  if (loading && (!feedArr || feedArr.length === 0)) {
+    return <div className="text-center my-36">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center my-36 text-red-500">{error}</div>;
+  }
+
   return feedArr?.length > 0 ? (
     <div className="flex justify-center my-20">
       <UserCard
